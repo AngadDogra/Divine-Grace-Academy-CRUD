@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Student Management System</h1>
+
+  <form id="studentForm">
+    <input type="text" id="student_name" placeholder="Student Name" required>
+    <input type="date" id="date_of_birth" placeholder="Date of Birth" required>
+    <input type="date" id="date_of_admission" placeholder="Date of Admission" required>
+    <input type="number" id="class_id" placeholder="Class ID" required>
+    <button type="submit">Add Student</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Student Name</th>
+        <th>Date of Birth</th>
+        <th>Date of Admission</th>
+        <th>Class ID</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="studentList"></tbody>
+  </table>
+
+  <script>
+    // Fetch all students
+    function loadStudents() {
+        fetch('/')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json().catch(() => {
+            console.error("Response is not valid JSON");
+            throw new Error("Invalid JSON format");
+        });
+    })
+    .then(data => {
+        const studentList = document.getElementById('studentList');
+        studentList.innerHTML = '';
+        data.forEach(student => {
+            const row = `
+                <tr>
+                    <td>${student.student_id}</td>
+                    <td>${student.student_name}</td>
+                    <td>${student.date_of_birth}</td>
+                    <td>${student.date_of_admission}</td>
+                    <td>${student.class_id}</td>
+                    <td>
+                        <button onclick="deleteStudent(${student.student_id})">Delete</button>
+                    </td>
+                </tr>
+            `;
+            studentList.innerHTML += row;
+        });
+    })
+    .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+    });
+
+    }
+
+    // Add a new student
+    document.getElementById('studentForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const student_name = document.getElementById('student_name').value;
+      const date_of_birth = document.getElementById('date_of_birth').value;
+      const date_of_admission = document.getElementById('date_of_admission').value;
+      const class_id = document.getElementById('class_id').value;
+
+      fetch('/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ student_name, date_of_birth, date_of_admission, class_id })
+      })
+      .then(() => {
+        loadStudents();
+        document.getElementById('studentForm').reset();
+      });
+    });
+
+    // Delete a student
+    function deleteStudent(id) {
+      fetch(`/${id}`, {
+        method: 'DELETE',
+      })
+      .then(() => loadStudents());
+    }
+
+    // Load students on page load
+    window.onload = loadStudents;
+  </script>
+</body>
+</html>

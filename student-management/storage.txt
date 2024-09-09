@@ -1,0 +1,57 @@
+const express = require('express');
+const mysql = require('mysql2');
+// const path = require('path');  // Built-in module to handle paths
+
+
+const app = express();
+const port = 3000;
+
+// app.use(express.static(path.join(__dirname, 'public')));
+
+// Create a connection to the MySQL database
+const db = mysql.createConnection({
+    host: 'localhost',   // Replace with your MySQL host (default is localhost)
+    user: 'root',        // Your MySQL username
+    password: 'Khulja@1204',  // Your MySQL password
+    database: 'students' // Your MySQL database name
+});
+
+// Connect to the database
+db.connect(err => {
+    if (err) {
+        console.error('Error connecting to the database:', err);
+        return;
+    }
+    console.log('Connected to MySQL database');
+});
+
+// Middleware to parse incoming requests
+app.use(express.json());
+
+// API route to get all students
+app.get('/', (req, res) => {
+    const query = 'SELECT * FROM students_list';
+    db.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results);
+    });
+});
+
+// API route to insert a new student
+app.post('/', (req, res) => {
+    const { student_name, date_of_birth, date_of_admission, class_id } = req.body;
+    const query = 'INSERT INTO students_list (student_name, date_of_birth, date_of_admission, class_id) VALUES (?, ?, ?, ?)';
+    db.query(query, [student_name, date_of_birth, date_of_admission, class_id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Student added successfully', id: results.insertId });
+    });
+});
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
